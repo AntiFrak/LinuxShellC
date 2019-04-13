@@ -4,33 +4,23 @@
 #include "LibFunction/parsingLineShell.h"
 
 #define EXIT_CODE 0
-#define BUF_SIZE 100
+#define BUF_SIZE 128
 #define TOKEN_SEP " \t\n\r"
 
 void shellCycle(){
-    char *line;
-    char **arg;
-    do{
-        printf("---->");
-        line = readLine();
-        arg = parsingLine(line);
-        
+    char *line = readLine();
+    char *tokenTab[BUF_SIZE];
+    int arg;
+
+    while(line != NULL){
+        arg = parsingLine(line, tokenTab);
         free(line);
-        free(arg);
-    }while(1);
+        line = readLine();
+    }
 }
 
 
 int main(){
-    //shellCycle();
-    char * line;
-    char **arg;
-    line = readLine();
-    arg = parsingLine(line);
-    for(int i =0; i<100; i++){
-        printf(arg[i]);
-    }
-    free(line);
-    free(arg);
+    shellCycle();
     return EXIT_CODE;
 }

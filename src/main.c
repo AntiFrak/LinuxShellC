@@ -1,15 +1,26 @@
-#include <sdtio.h>
-#include "readLineShell"
+#include <stdio.h>
+#include <stdlib.h>
+#include "LibFunction/readLineShell.h"
+#include "LibFunction/parsingLineShell.h"
+
+#define EXIT_CODE 0
+#define BUF_SIZE 128
+#define TOKEN_SEP " \t\n\r"
 
 void shellCycle(){
-    char *line;
-    line = readLine();
-    free(line);
+    char *line = readLine();
+    char *tokenTab[BUF_SIZE];
+    int arg;
+
+    while(line != NULL){
+        arg = parsingLine(line, tokenTab);
+        free(line);
+        line = readLine();
+    }
 }
 
 
 int main(){
-    char *line;
-    line = readLine();
+    shellCycle();
     return EXIT_CODE;
 }

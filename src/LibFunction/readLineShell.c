@@ -2,7 +2,8 @@
 
 char *readLine(){
     char *SHstring = NULL;
-    ssize_t buffer = 0;
+    size_t buffer = 0;
+    printf("---->");
     getline(&SHstring, &buffer, stdin);
     return SHstring;
 }

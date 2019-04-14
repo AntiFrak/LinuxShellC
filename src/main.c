@@ -32,16 +32,15 @@ int main(){
 void executeCommand(int number, char *tokenTab[]){
     pid_t pid, wpid;
     int  wstatus;
-    //char *argv[2]; // для поиска ебучего бага
-    //argv[1]=NULL;// для поиска ебучего бага
+    char *argv[2]; // для поиска ебучего бага
+    argv[1]=NULL;// для поиска ебучего бага
 
    
     //for(int i = 0; i< number; i++){
-       // argv[0]= tokenTab[i];
-       // printf("%s , %d", tokenTab[i], number);
+        argv[0]= tokenTab[0];
         pid = fork();
         if(pid == 0){
-            if(execvp(tokenTab[0], tokenTab)== -1){  // тут поидее должно быть tokenTab вторым параметром, для теста юзал argv
+            if(execvp(tokenTab[0], argv)== -1){  // тепер эта хуйня срабатывает когда вписываеться два параметра нп firefox &, top &
                 perror("execvp");
                 exit(-1);
             }

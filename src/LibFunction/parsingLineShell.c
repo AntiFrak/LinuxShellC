@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define BUF_SIZE 128
-#define TOKEN_SEP " |"
+#define TOKEN_SEP " \n\t\r|"
 
 int parsingLine(char *line, char *tokenTab[]){
     char *token;

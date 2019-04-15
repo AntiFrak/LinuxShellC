@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include "LibFunction/readLineShell.h"
 #include "LibFunction/parsingLineShell.h"
@@ -10,15 +12,43 @@
 #define BUF_SIZE 128
 
 void executeCommand(int number,char *tokenTab[]);
+void changeDir(char *tokenTab[]);
+void touchFile(char *tokenTab[]);
+void makeDir(char *tokenTab[]);
+
+char *command[] = {
+    "cd",
+    "touch",
+    "mkdir"
+};
+
+int commands(char *tokenTab[]){
+    if(strcmp(tokenTab[0], command[0])==0){
+        changeDir(tokenTab);
+        return 2;
+    }
+    if((strcmp(tokenTab[0], command[1]))==0){
+        touchFile(tokenTab);
+        return 2;
+    }
+    if((strcmp(tokenTab[0], command[2]))==0){
+        makeDir(tokenTab);
+        return 2;
+    }
+    return 1;
+}
 
 void shellCycle(){
     char *line = readLine();
     char *tokenTab[BUF_SIZE];
-    int number, stat;
+    int number, func;
 
     while(line != NULL){
         number = parsingLine(line, tokenTab);
-        executeCommand(number, tokenTab);
+        func = commands(tokenTab);
+        if(func == 1){
+            executeCommand(number, tokenTab);
+        }
         free(line);
         line = readLine();
     }
@@ -32,65 +62,63 @@ int main(){
 void executeCommand(int number, char *tokenTab[]){
     pid_t pid;
     int  wstatus;
-    char *argv[2];
-    int pipefd[2];
-    int read, write;
+    char *argv[number + 1];
 
-    argv[1] = '\0';
-
-
-   
-    for(int i = 0; i< number; i++){
-        argv[0]= tokenTab[0];
-        if(i>0){
-            if((close(write)) == -1){
-                perror("close write");
-            }
-        }
-
-        if(i<number-1){
-            if(pipe(pipefd)== -1){
-                perror("pipe1");
-                exit(-1);
-            }
-            write = pipefd[1];
-        }
-
-        pid = fork();
-        if(pid == -1){
-            perror("fork1");
-            exit(-1);
-        }
-        if(pid == 0){
-            if(i > 0){
-                if(dup2(read, STDIN_FILENO) == -1){
-                    perror("dup2.1");
-                    exit(-1);
-                }
-                if((close(read)) == -1){
-                    perror("close read");
-                }
-            }
-            if(i < number -1){
-                if(dup2(write, STDIN_FILENO) == -1){
-                    perror("dup2.2");
-                    exit(-1);
-                }
-                if((close(write)) == -1){
-                    perror("close write");
-            }
-            }
-            if(execvp(tokenTab[0], argv)== -1){  // тепер эта хуйня срабатывает когда вписываеться два параметра нп firefox &, top &
-                perror("execvp");
-            }
-             exit(-1);
-        }
-        if(i <number -1){
-            read = pipefd[0];
-        }
-            
+    for(int i = 1; i < number; i++){
+        argv[i] = tokenTab[i];
     }
-    while((pid=wait(&wstatus)) != -1){}
+
+    argv[number+1] = '\0';
+    argv[0]= tokenTab[0];
     
+    pid = fork();
+    if(pid == -1){
+        perror("fork1");
+        exit(-1);
+    }
+    if(pid == 0){
+        if(execvp(tokenTab[0], argv)== -1){ 
+        perror("execvp");
+        }
+        exit(-1);
+    }
+    while((pid=wait(&wstatus)) != -1){} 
 }
 
+void changeDir(char *tokenTab[]){
+    if(tokenTab[1]== NULL){
+        perror("no argument");
+        exit(-1);
+    }
+    else{
+        if(chdir(tokenTab[1]) != 0){
+            perror("chdir");
+            exit(-1);
+        }
+    }
+}
+
+void touchFile(char *tokenTab[]){
+    if(tokenTab[1] == NULL){
+        perror("No name file");
+        exit(-1);
+    }
+    else{
+        if(open(tokenTab[1], O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH) == -1){
+            perror("open");
+            exit(-1);
+        }
+    }
+}
+
+void makeDir(char *tokenTab[]){
+    if(tokenTab[1] == NULL){
+        perror("No name derictory");
+        exit(-1);
+    }
+    else{
+        if(mkdir(tokenTab[1], 0777)== -1){
+            perror("mkdir");
+        }
+    }
+}

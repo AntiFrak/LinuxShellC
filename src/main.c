@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include "LibFunction/readLineShell.h"
 #include "LibFunction/parsingLineShell.h"
@@ -10,15 +12,43 @@
 #define BUF_SIZE 128
 
 void executeCommand(int number,char *tokenTab[]);
+void changeDir(char *tokenTab[]);
+void touchFile(char *tokenTab[]);
+void makeDir(char *tokenTab[]);
+
+char *command[] = {
+    "cd",
+    "touch",
+    "mkdir"
+};
+
+int commands(char *tokenTab[]){
+    if(strcmp(tokenTab[0], command[0])==0){
+        changeDir(tokenTab);
+        return 2;
+    }
+    if((strcmp(tokenTab[0], command[1]))==0){
+        touchFile(tokenTab);
+        return 2;
+    }
+    if((strcmp(tokenTab[0], command[2]))==0){
+        makeDir(tokenTab);
+        return 2;
+    }
+    return 1;
+}
 
 void shellCycle(){
     char *line = readLine();
     char *tokenTab[BUF_SIZE];
-    int number, stat;
+    int number, func;
 
     while(line != NULL){
         number = parsingLine(line, tokenTab);
-        executeCommand(number, tokenTab);
+        func = commands(tokenTab);
+        if(func == 1){
+            executeCommand(number, tokenTab);
+        }
         free(line);
         line = readLine();
     }
@@ -64,4 +94,42 @@ void executeCommand(int number, char *tokenTab[]){
             
     while((pid=wait(&wstatus)) != -1){}
     
+}
+
+void changeDir(char *tokenTab[]){
+    if(tokenTab[1]== NULL){
+        perror("no argument");
+        exit(-1);
+    }
+    else{
+        if(chdir(tokenTab[1]) != 0){
+            perror("chdir");
+            exit(-1);
+        }
+    }
+}
+
+void touchFile(char *tokenTab[]){
+    if(tokenTab[1] == NULL){
+        perror("No name file");
+        exit(-1);
+    }
+    else{
+        if(open(tokenTab[1], O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH) == -1){
+            perror("open");
+            exit(-1);
+        }
+    }
+}
+
+void makeDir(char *tokenTab[]){
+    if(tokenTab[1] == NULL){
+        perror("No name derictory");
+        exit(-1);
+    }
+    else{
+        if(mkdir(tokenTab[1], 0777)== -1){
+            perror("mkdir");
+        }
+    }
 }

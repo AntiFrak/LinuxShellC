@@ -62,27 +62,38 @@ int main(){
 void executeCommand(int number, char *tokenTab[]){
     pid_t pid;
     int  wstatus;
-    char *argv[number + 1];
-
-    for(int i = 1; i < number; i++){
-        argv[i] = tokenTab[i];
+    char *argv[number+1];
+   
+	
+    if (number == 1) 
+    {
+        argv[1] = '\0';
     }
-
-    argv[number+1] = '\0';
-    argv[0]= tokenTab[0];
+    else 
+    {
+        for(int i = 1; i<number; i++){
+		    argv[i] = tokenTab[i];
+	    }   
+    }
     
+    argv[number+1] = '\0';
+
     pid = fork();
     if(pid == -1){
         perror("fork1");
         exit(-1);
     }
     if(pid == 0){
+                     
         if(execvp(tokenTab[0], argv)== -1){ 
-        perror("execvp");
+            perror("execvp");
         }
-        exit(-1);
+         exit(-1);
     }
-    while((pid=wait(&wstatus)) != -1){} 
+        
+            
+    while((pid=wait(&wstatus)) != -1){}
+    
 }
 
 void changeDir(char *tokenTab[]){

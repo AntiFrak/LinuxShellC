@@ -64,19 +64,13 @@ void executeCommand(int number, char *tokenTab[]){
     int  wstatus;
     char *argv[number+1];
    
-	
-    if (number == 1) 
-    {
-        argv[1] = '\0';
-    }
-    else 
-    {
-        for(int i = 1; i<number; i++){
-		    argv[i] = tokenTab[i];
-	    }   
-    }
+
+    for(int i = 1; i<number; i++){
+		argv[i] = tokenTab[i];
+	}   
     
     argv[number+1] = '\0';
+    argv[0] = tokenTab[0];
 
     pid = fork();
     if(pid == -1){

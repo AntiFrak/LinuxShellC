@@ -59,6 +59,16 @@ int main(){
     return EXIT_CODE;
 }
 
+
+void pipe_dup(int numb, char* tokenTab[])
+{
+    char** comands[BUF_SIZE];
+    size_t fd[2], status, pipest;
+    pid_t pid;
+
+}
+
+
 void executeCommand(int number, char *tokenTab[]){
     pid_t pid;
     int  wstatus;
@@ -67,7 +77,7 @@ void executeCommand(int number, char *tokenTab[]){
 
     for(int i = 1; i<number; i++){
 		argv[i] = tokenTab[i];
-	}   
+        }
     
     argv[number+1] = '\0';
     argv[0] = tokenTab[0];

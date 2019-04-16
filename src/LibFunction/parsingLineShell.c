@@ -16,3 +16,18 @@ int parsingLine(char *line, char *tokenTab[]){
     }
     return pos;
 }
+
+size_t parsingPipes(char* tokenTab[], size_t numb, char** comands[])
+{
+    char** token = strtok(tokenTab, '|');
+    size_t n = 0;
+    
+    while (token != NULL)
+    {
+        comands[n] = token;
+        token = strtok(tokenTab, '|');
+        n++;
+    }
+
+    return n;
+}

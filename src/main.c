@@ -1,25 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include "LibFunction/readLineShell.h"
-#include "LibFunction/parsingLineShell.h"
+#include "LibFunction/functionLineShell.h"
+#include "LibFunction/functionCommandsShell.h"
 
 #define EXIT_CODE 0
-#define BUF_SIZE 128
+#define BUF_SIZE 10
+
+int flagBackground = 0;
+int flagExit = 0;
 
 void executeCommand(int number,char *tokenTab[]);
-void changeDir(char *tokenTab[]);
-void touchFile(char *tokenTab[]);
-void makeDir(char *tokenTab[]);
 
 char *command[] = {
     "cd",
     "touch",
-    "mkdir"
+    "mkdir",
+    "exit"
 };
 
 int commands(char *tokenTab[]){
@@ -35,90 +35,73 @@ int commands(char *tokenTab[]){
         makeDir(tokenTab);
         return 2;
     }
+    
+    if((strcmp(tokenTab[0],command[3]))==0){
+        flagExit = 1;
+        return 2;
+    }
     return 1;
 }
+
 
 void shellCycle(){
     char *line = readLine();
     char *tokenTab[BUF_SIZE];
     int number, func;
-
-    while(line != NULL){
-        number = parsingLine(line, tokenTab);
+    
+    while(flagExit != 1){
+        number = parsingLine(line, tokenTab, &flagBackground);
         func = commands(tokenTab);
         if(func == 1){
             executeCommand(number, tokenTab);
         }
         free(line);
-        line = readLine();
+        if(flagExit == 0){
+            line = readLine();
+        }
     }
 }
 
 int main(){
+    
     shellCycle();
     return EXIT_CODE;
 }
 
+
 void executeCommand(int number, char *tokenTab[]){
     pid_t pid;
     int  wstatus;
-    char *argv[number + 1];
+    char *argv[number];
 
     for(int i = 1; i < number; i++){
         argv[i] = tokenTab[i];
     }
-
-    argv[number+1] = '\0';
-    argv[0]= tokenTab[0];
     
+    argv[0]= tokenTab[0];
+    argv[number] = NULL;
+
     pid = fork();
     if(pid == -1){
         perror("fork1");
         exit(-1);
     }
     if(pid == 0){
-        if(execvp(tokenTab[0], argv)== -1){ 
+        if(execvp(tokenTab[0],argv)== -1){ 
         perror("execvp");
         }
         exit(-1);
     }
-    while((pid=wait(&wstatus)) != -1){} 
+    else{
+        if(flagBackground == 0){
+            waitpid(pid, &wstatus, 0);
+        }
+        else{
+            printf("~~~~~ Process running in in Background. PID:%d\n",pid);
+        }
+            
+    }
+    flagBackground = 0;
+    pid = 0;
 }
 
-void changeDir(char *tokenTab[]){
-    if(tokenTab[1]== NULL){
-        perror("no argument");
-        exit(-1);
-    }
-    else{
-        if(chdir(tokenTab[1]) != 0){
-            perror("chdir");
-            exit(-1);
-        }
-    }
-}
-
-void touchFile(char *tokenTab[]){
-    if(tokenTab[1] == NULL){
-        perror("No name file");
-        exit(-1);
-    }
-    else{
-        if(open(tokenTab[1], O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH) == -1){
-            perror("open");
-            exit(-1);
-        }
-    }
-}
-
-void makeDir(char *tokenTab[]){
-    if(tokenTab[1] == NULL){
-        perror("No name derictory");
-        exit(-1);
-    }
-    else{
-        if(mkdir(tokenTab[1], 0777)== -1){
-            perror("mkdir");
-        }
-    }
-}

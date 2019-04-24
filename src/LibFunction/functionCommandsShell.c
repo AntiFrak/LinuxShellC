@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
+// funkcja zmienia obecna direktorijum
 void changeDir(char *tokenTab[]){
     if(tokenTab[1]== NULL){
         perror("no argument");
@@ -19,6 +19,7 @@ void changeDir(char *tokenTab[]){
     }
 }
 
+// funkcja tworzy nowy plik
 void touchFile(char *tokenTab[]){
     if(tokenTab[1] == NULL){
         perror("No name file");
@@ -32,6 +33,7 @@ void touchFile(char *tokenTab[]){
     }
 }
 
+//funkcja tworzy nowa directorijum
 void makeDir(char *tokenTab[]){
     if(tokenTab[1] == NULL){
         perror("No name derictory");

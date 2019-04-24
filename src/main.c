@@ -19,6 +19,7 @@ int flagExit = 0;
 void executeCommand(int number,char *tokenTab[]);
 void executeCommandOnFile(int number, char *tokenTab[]);
 
+//tablica zawiera nazwy wlasnych funkcji
 char *command[] = {
     "cd",
     "touch",
@@ -26,6 +27,8 @@ char *command[] = {
     "exit"
 };
 
+//funkcja sprawdza komenda i uruchamia z listy wlasnych 
+// albo ze zmennej PATH
 int commands(char *tokenTab[]){
     if(strcmp(tokenTab[0], command[0])==0){
         changeDir(tokenTab);
@@ -47,7 +50,7 @@ int commands(char *tokenTab[]){
     return 1;
 }
 
-
+//petlia glowna
 void shellCycle(){
     char *line = readLine();
     char *tokenTab[BUF_SIZE];
@@ -78,7 +81,8 @@ int main(){
     return EXIT_CODE;
 }
 
-
+// funkcja wykonuje polecenia przez utworzenie
+// nowego procesu i wywolanu execvp()
 void executeCommand(int number, char *tokenTab[]){
     pid_t pid;
     int  wstatus;
@@ -116,7 +120,8 @@ void executeCommand(int number, char *tokenTab[]){
 }
 
 
-
+// funkcja wywoluje polecenie z przekierowaniem 
+// wyjscia do pliku
 void executeCommandOnFile(int number, char *tokenTab[]){
     pid_t pid;
     int wstatus;
@@ -126,8 +131,6 @@ void executeCommandOnFile(int number, char *tokenTab[]){
     
     int fds[2];
     int file;
-
-    
 
     for(int i = 0; i < number-1; i++){
         argv[i] = tokenTab[i];

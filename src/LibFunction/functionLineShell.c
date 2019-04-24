@@ -4,6 +4,9 @@
 
 #define TOKEN_SEP " \n\t\r"
 
+// funkcja dzieli string wejsciowy na pojedyncze slowa
+// i umieszcza ich do tablicy.
+// zwraca dlugosc tej tabeli 
 int parsingLine(char *line, char *tokenTab[], int *flagBack, int *flagFile){
     char *token;
     int pos = 0;
@@ -29,6 +32,7 @@ int parsingLine(char *line, char *tokenTab[], int *flagBack, int *flagFile){
     return pos;
 }
 
+//funkcja odczytuje komende z linii polecen do zmennej
 char *readLine(){
     fflush(stdout);
     char *SHstringCopy, *SHstring = NULL;

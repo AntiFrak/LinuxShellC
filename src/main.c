@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include "LibFunction/functionLineShell.h"
 #include "LibFunction/functionCommandsShell.h"
 
@@ -11,9 +13,11 @@
 #define BUF_SIZE 10
 
 int flagBackground = 0;
+int flagFile = 0;
 int flagExit = 0;
 
 void executeCommand(int number,char *tokenTab[]);
+void executeCommandOnFile(int number, char *tokenTab[]);
 
 char *command[] = {
     "cd",
@@ -50,12 +54,18 @@ void shellCycle(){
     int number, func;
     
     while(flagExit != 1){
-        number = parsingLine(line, tokenTab, &flagBackground);
+        number = parsingLine(line, tokenTab, &flagBackground, &flagFile);
         func = commands(tokenTab);
         if(func == 1){
-            executeCommand(number, tokenTab);
+            if(flagFile == 0){
+                executeCommand(number, tokenTab);
+            }
+            else{
+                executeCommandOnFile(number,tokenTab);
+            }
         }
         free(line);
+        flagFile = 0;
         if(flagExit == 0){
             line = readLine();
         }
@@ -105,3 +115,48 @@ void executeCommand(int number, char *tokenTab[]){
     pid = 0;
 }
 
+
+
+void executeCommandOnFile(int number, char *tokenTab[]){
+    pid_t pid;
+    int wstatus;
+    char *argv[number-1];
+    
+    char *fileName = tokenTab[number];
+    
+    int fds[2];
+    int file;
+
+    
+
+    for(int i = 0; i < number-1; i++){
+        argv[i] = tokenTab[i];
+    }
+  
+    pipe(fds);
+    pid = fork();
+    if(pid == -1){
+        perror("fork1");
+        exit(-1);
+    }
+    if(pid == 0){
+        file = open(fileName, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
+        if (file == -1) {
+            perror ("open"); 
+            exit(-1); 
+            }
+
+        close(fds[1]);
+        dup2(file, 1);
+
+        if(execvp(tokenTab[0],argv)== -1){ 
+            perror("execvp");
+            exit(-1);
+        }
+    }
+    else{
+           
+        close(fds[0]);
+        waitpid(pid, &wstatus, 0);
+    }
+}

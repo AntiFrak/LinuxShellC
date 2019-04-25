@@ -76,7 +76,6 @@ void shellCycle(){
 }
 
 int main(){
-    
     shellCycle();
     return EXIT_CODE;
 }
@@ -91,7 +90,6 @@ void executeCommand(int number, char *tokenTab[]){
     for(int i = 1; i < number; i++){
         argv[i] = tokenTab[i];
     }
-    
     argv[0]= tokenTab[0];
     argv[number] = NULL;
 
@@ -112,8 +110,7 @@ void executeCommand(int number, char *tokenTab[]){
         }
         else{
             printf("~~~~~ Process running in in Background. PID:%d\n",pid);
-        }
-            
+        }     
     }
     flagBackground = 0;
     pid = 0;
@@ -126,9 +123,7 @@ void executeCommandOnFile(int number, char *tokenTab[]){
     pid_t pid;
     int wstatus;
     char *argv[number-1];
-    
-    char *fileName = tokenTab[number];
-    
+    char *fileName = tokenTab[number-1];
     int fds[2];
     int file;
 
@@ -143,23 +138,19 @@ void executeCommandOnFile(int number, char *tokenTab[]){
         exit(-1);
     }
     if(pid == 0){
-        file = open(fileName, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
+        file = open(fileName, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
         if (file == -1) {
             perror ("open"); 
             exit(-1); 
             }
 
-        close(fds[1]);
         dup2(file, 1);
+        close(file);
 
         if(execvp(tokenTab[0],argv)== -1){ 
             perror("execvp");
             exit(-1);
         }
     }
-    else{
-           
-        close(fds[0]);
-        waitpid(pid, &wstatus, 0);
-    }
+    waitpid(pid, &wstatus, 0);   
 }
